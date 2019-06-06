@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { css } from '@emotion/core'
 import { find } from 'lodash-es'
 import styled from '@emotion/styled'
-import { getRubric } from '../api'
+import Nav from '../components/Nav'
+import { connect } from 'react-redux'
+import { getFullRubric } from '../reducers'
 const gridItem = css`
   padding: 0.5em;
 `
@@ -45,14 +47,13 @@ const SelectableItem = styled.div`
   }
 `
 
-function TopicRow({ name, weight, id, options, handleUpdate }) {
-  const handleChange = e => {
+function TopicRow({ name, weight, id, criteria, handleUpdate }) {
+  const handleChange = (criteria, e) => {
     if (e.target.checked && e.target.value) {
-      const item = find(options, { id: e.target.value })
-      const grade = weight * (item.weight / 100)
+      const grade = weight * (criteria.weight / 100)
       handleUpdate({
         topic: id,
-        item,
+        criteria,
         grade,
       })
     }
@@ -62,31 +63,30 @@ function TopicRow({ name, weight, id, options, handleUpdate }) {
       <StyledRow>
         <div>{name}</div>
         <div>{weight}</div>
-        {options.map(option => (
-          <SelectableItem key={option.id}>
+        {criteria.map(criteria => (
+          <SelectableItem key={`${id}-${criteria.id}`}>
             <input
               type="radio"
               name={id}
-              value={option.id}
-              id={option.id}
-              disabled={option.disabled}
-              onChange={handleChange}
+              value={`${id}-${criteria.id}`}
+              id={`${id}-${criteria.id}`}
+              // disabled={criteria.disabled}
+              onChange={e => handleChange(criteria, e)}
             />
-            <label htmlFor={option.id}>{option.description}</label>
+            <label htmlFor={`${id}-${criteria.id}`}>
+              {criteria.description}
+            </label>
           </SelectableItem>
         ))}
       </StyledRow>
     </>
   )
 }
-export default function Rubric() {
-  const [rubric, setRubric] = useState(null)
+function Rubric({ rubric }) {
   const [topicGrades, setTopicGrades] = useState([])
   const [finalGrade, setFinalGrade] = useState(0)
 
   useEffect(() => {
-    let rubric = getRubric()
-    setRubric(rubric)
     calculateGrade(topicGrades)
   }, [topicGrades])
 
@@ -97,29 +97,42 @@ export default function Rubric() {
     calculateGrade(topicGrades)
   }
   const calculateGrade = grades => {
-    const grade = grades.reduce((total, topic) => total + topic.grade, 0)
-    setFinalGrade(grade)
+    if (grades) {
+      const grade = grades.reduce((total, topic) => total + topic.grade, 0)
+      setFinalGrade(grade)
+    }
   }
 
   return (
-    rubric && (
-      <>
-        <StyledRow>
-          {rubric.headings.map((r, i) => (
-            <Heading key={i}>{r}</Heading>
-          ))}
-        </StyledRow>
-        {rubric.topics.map(topic => {
-          return (
-            <TopicRow
-              key={topic.id}
-              {...topic}
-              handleUpdate={handleRowUpdate}
-            />
-          )
-        })}
-        <div>Final Grade: {finalGrade}</div>
-      </>
-    )
+    <div>
+      <h1>Rubric</h1>
+      <Nav />
+      {rubric && (
+        <>
+          <StyledRow>
+            <Heading>Topic</Heading>
+            <Heading>Weight</Heading>
+            {rubric.levels.map(l => (
+              <Heading key={l.di}>{l.name}</Heading>
+            ))}
+          </StyledRow>
+          {rubric.topics.map(topic => {
+            return (
+              <TopicRow
+                key={topic.id}
+                {...topic}
+                handleUpdate={handleRowUpdate}
+              />
+            )
+          })}
+          <div>Final Grade: {finalGrade}</div>
+        </>
+      )}
+    </div>
   )
 }
+
+const mapState = state => ({
+  rubric: getFullRubric(state),
+})
+export default connect(mapState)(Rubric)

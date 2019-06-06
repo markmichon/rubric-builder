@@ -1,8 +1,9 @@
 /** @jsx jsx */
-import React, { useState, useReducer, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { css, jsx } from '@emotion/core'
 import nanoid from 'nanoid'
 import { connect } from 'react-redux'
+import Nav from '../components/Nav'
 import { getTopics } from '../reducers'
 import {
   addLevel,
@@ -29,7 +30,7 @@ const RubricGrid = ({ children, count }) => {
 }
 
 const renderLevels = (levels, update) => {
-  return levels.map(({ id }, idx) => {
+  return levels.map(({ id, name, weight }, idx) => {
     return (
       <fieldset
         css={css`
@@ -43,6 +44,7 @@ const renderLevels = (levels, update) => {
           type="text"
           id={`lName-${id}`}
           name={`lName-${id}`}
+          value={name}
           onChange={e => update({ id: id, field: 'name' }, e)}
         />
         <label htmlFor={`lWeight-${id}`}>Weight</label>
@@ -50,6 +52,7 @@ const renderLevels = (levels, update) => {
           type="text"
           id={`lWeight-${id}`}
           name={`lWeight-${id}`}
+          value={weight}
           onChange={e => update({ id: id, field: 'weight' }, e)}
         />
       </fieldset>
@@ -58,7 +61,7 @@ const renderLevels = (levels, update) => {
 }
 
 function Builder({ levels, topics, criteria, dispatch }) {
-  // const topics = useTopics()
+  const [output, setOutput] = useState(null)
 
   useEffect(() => {
     // Reconcile levels with topics
@@ -68,6 +71,13 @@ function Builder({ levels, topics, criteria, dispatch }) {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const save = () => {
+    setOutput({
+      levels: levels,
+      topics: topics,
+    })
+  }
 
   const processLevelForm = e => {
     e.preventDefault()
@@ -101,6 +111,7 @@ function Builder({ levels, topics, criteria, dispatch }) {
   return (
     <div>
       <h1>Builder</h1>
+      <Nav />
       <form onSubmit={processLevelForm}>
         <p>Create Achievement Levles</p>
         <div
@@ -129,6 +140,7 @@ function Builder({ levels, topics, criteria, dispatch }) {
                 type="text"
                 id={`tName-${topic.id}`}
                 name={`tName-${topic.id}`}
+                value={topic.name}
                 onChange={e => updateTopic({ field: 'name', id: topic.id }, e)}
               />
             </fieldset>
@@ -138,6 +150,7 @@ function Builder({ levels, topics, criteria, dispatch }) {
                 type="text"
                 id={`tWeight-${topic.id}`}
                 name={`tWeight-${topic.id}`}
+                value={topic.weight}
                 onChange={e =>
                   updateTopic({ field: 'weight', id: topic.id }, e)
                 }
@@ -148,6 +161,7 @@ function Builder({ levels, topics, criteria, dispatch }) {
                 <label htmlFor={criteria.id}>Criteria</label>
                 <textarea
                   id={criteria.id}
+                  value={criteria.description}
                   onChange={e =>
                     dispatch(
                       editCriteria({
@@ -171,9 +185,9 @@ function Builder({ levels, topics, criteria, dispatch }) {
         </button>
       </form>
       <hr />
-      <button>Save Rubric</button>
+      <button onClick={save}>Save Rubric</button>
       <hr />
-      {/* {output && <textarea value={`${JSON.stringify(output)}`} readOnly />} */}
+      {output && <textarea value={`${JSON.stringify(output)}`} readOnly />}
     </div>
   )
 }

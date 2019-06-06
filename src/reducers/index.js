@@ -1,12 +1,12 @@
 import { combineReducers } from 'redux'
 import nanoid from 'nanoid'
-const initLevels = [
-  {
-    id: nanoid(),
-    name: '',
-    weight: '',
-  },
-]
+
+const firstLevel = {
+  id: nanoid(),
+  name: '',
+  weight: '',
+}
+const initLevels = [firstLevel]
 function levels(state = initLevels, { type, payload }) {
   switch (type) {
     case `ADD_LEVEL`:
@@ -80,7 +80,12 @@ const reconcileCriteria = (levels = [], criteria = []) => {
 }
 
 const initCriteria = {
-  [firstTopic.id]: [],
+  [firstTopic.id]: [
+    {
+      id: firstLevel.id,
+      description: '',
+    },
+  ],
 }
 function criteria(state = initCriteria, { type, payload }) {
   switch (type) {
@@ -128,6 +133,8 @@ function criteria(state = initCriteria, { type, payload }) {
   }
 }
 
+const getLevelById = (state, id) =>
+  state.levels.filter(level => level.id === id)[0]
 export const getLevels = state => state.levels
 export const getAllCriteria = state => state.criteria
 export const getCriteriaById = (state, id) => state[id]
@@ -137,6 +144,17 @@ export const getTopics = state => {
     criteria: state.criteria[topic.id],
   }))
 }
+
+export const getFullRubric = state => ({
+  levels: state.levels,
+  topics: getTopics(state).map(topic => ({
+    ...topic,
+    criteria: topic.criteria.map(crit => ({
+      ...crit,
+      ...getLevelById(state, crit.id),
+    })),
+  })),
+})
 
 export default combineReducers({
   levels,

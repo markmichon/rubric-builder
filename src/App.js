@@ -1,25 +1,18 @@
 import React from 'react'
 import Rubric from './containers/Rubric'
 import Builder from './containers/Builder'
+import Nav from './components/Nav'
 import { Router, Link } from '@reach/router'
 import { Provider } from 'react-redux'
-import { createStore, applyMiddleware } from 'redux'
-import thunk from 'redux-thunk'
-import { composeWithDevTools } from 'redux-devtools-extension'
-import rootReducer from './reducers'
+import configureStore from './configureStore'
+import { PersistGate } from 'redux-persist/integration/react'
 
-const store = createStore(
-  rootReducer,
-  composeWithDevTools(applyMiddleware(thunk))
-)
-
+const { store, persistor } = configureStore()
 function Home() {
   return (
     <div>
       <h1>Rubric Builder</h1>
-      <div>
-        <Link to="/rubric">Rubric</Link> / <Link to="/builder">Builder</Link>
-      </div>
+      <Nav />
     </div>
   )
 }
@@ -27,11 +20,13 @@ function Home() {
 function App() {
   return (
     <Provider store={store}>
-      <Router>
-        <Home path="/" />
-        <Rubric path="/rubric" />
-        <Builder path="/builder" />
-      </Router>
+      <PersistGate loading={null} persistor={persistor}>
+        <Router>
+          <Home path="/" />
+          <Rubric path="/rubric" />
+          <Builder path="/builder" />
+        </Router>
+      </PersistGate>
     </Provider>
   )
 }
