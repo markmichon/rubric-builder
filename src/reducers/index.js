@@ -42,6 +42,8 @@ function topics(state = initTopics, { type, payload }) {
         }
         return topic
       })
+    case 'DELETE_TOPIC':
+      return state.filter(topic => topic.id !== payload.id)
     default:
       return state
   }
@@ -63,12 +65,15 @@ const reconcileCriteria = (levels = [], criteria = []) => {
   let criteriaById = {}
   if (criteria.length > 0) {
     criteria.forEach(crit => {
-      criteriaById = {
-        ...criteriaById,
-        [crit.id]: {
-          id: crit.id,
-          description: crit.description,
-        },
+      if (newlevelsById.hasOwnProperty(crit.id)) {
+        criteriaById = {
+          ...criteriaById,
+          [crit.id]: {
+            id: crit.id,
+            description: crit.description,
+            disabled: crit.disabled,
+          },
+        }
       }
     })
   }
@@ -84,6 +89,7 @@ const initCriteria = {
     {
       id: firstLevel.id,
       description: '',
+      disabled: false,
     },
   ],
 }
@@ -125,6 +131,7 @@ function criteria(state = initCriteria, { type, payload }) {
         [payload.id]: payload.levels.map(level => ({
           id: level.id,
           description: '',
+          disabled: false,
         })),
       }
 

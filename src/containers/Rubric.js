@@ -1,12 +1,22 @@
+/** @jsx jsx */
 import React, { useState, useEffect } from 'react'
-import { css } from '@emotion/core'
-import { find } from 'lodash-es'
+import { css, jsx } from '@emotion/core'
 import styled from '@emotion/styled'
 import Nav from '../components/Nav'
 import { connect } from 'react-redux'
 import { getFullRubric } from '../reducers'
+import RubricRow from '../components/RubricRow'
 const gridItem = css`
   padding: 0.5em;
+`
+const borderStyle = `1px solid #ccc`
+
+const CommentContainer = styled.div`
+  grid-column: 2 / -1;
+  grid-row: 2;
+  padding: 1rem;
+  border-right: ${borderStyle};
+  font-weight: bold;
 `
 
 const StyledRow = styled.div`
@@ -14,12 +24,39 @@ const StyledRow = styled.div`
   grid-template-columns: 2fr 1fr repeat(4, 3fr);
 `
 
+const Headings = props => (
+  <div
+    css={css`
+      display: grid;
+      grid-template-columns: ${props.template};
+      background-color: HSL(209, 77%, 8%);
+      color: white;
+    `}
+    {...props}
+  />
+)
+
 const Heading = styled.div`
   ${gridItem}
+  padding: 1rem;
+`
+
+const NonInteractiveItem = styled.div`
+  box-sizing: border-box;
+  display: block;
+  height: 100%;
+  padding: 1rem;
+  /* border-bottom: ${borderStyle}; */
 `
 
 const SelectableItem = styled.div`
   position: relative;
+  border-bottom: ${borderStyle};
+
+  &:not(:last-of-type) {
+    border-right: ${borderStyle};
+  }
+
   input {
     position: absolute !important;
     height: 1px;
@@ -32,7 +69,7 @@ const SelectableItem = styled.div`
     box-sizing: border-box;
     display: block;
     height: 100%;
-    padding: 0.5em;
+    padding: 1rem;
   }
 
   input:disabled + label {
@@ -43,7 +80,7 @@ const SelectableItem = styled.div`
     background-color: lightblue;
   }
   input:focus + label {
-    outline: 1px solid #333;
+    outline: 1px solid blue;
   }
 `
 
@@ -59,27 +96,44 @@ function TopicRow({ name, weight, id, criteria, handleUpdate }) {
     }
   }
   return (
-    <>
-      <StyledRow>
-        <div>{name}</div>
-        <div>{weight}</div>
-        {criteria.map(criteria => (
-          <SelectableItem key={`${id}-${criteria.id}`}>
-            <input
-              type="radio"
-              name={id}
-              value={`${id}-${criteria.id}`}
-              id={`${id}-${criteria.id}`}
-              // disabled={criteria.disabled}
-              onChange={e => handleChange(criteria, e)}
-            />
-            <label htmlFor={`${id}-${criteria.id}`}>
-              {criteria.description}
-            </label>
-          </SelectableItem>
-        ))}
-      </StyledRow>
-    </>
+    <RubricRow
+      template={`2fr repeat(${criteria.length}, 2fr)`}
+      css={css`
+        gap: 0;
+        border-left: ${borderStyle};
+        border-bottom: ${borderStyle};
+      `}
+    >
+      <NonInteractiveItem
+        css={css`
+          border-right: ${borderStyle};
+          grid-row: 1/ 3;
+          font-weight: bold;
+        `}
+      >
+        <p>
+          {name}
+          {weight}
+        </p>
+      </NonInteractiveItem>
+      {criteria.map(criteria => (
+        <SelectableItem key={`${id}-${criteria.id}`}>
+          <input
+            type="radio"
+            name={id}
+            value={`${id}-${criteria.id}`}
+            id={`${id}-${criteria.id}`}
+            disabled={criteria.disabled}
+            onChange={e => handleChange(criteria, e)}
+          />
+          <label htmlFor={`${id}-${criteria.id}`}>{criteria.description}</label>
+        </SelectableItem>
+      ))}
+      <CommentContainer>
+        <label htmlFor="">Comment:</label>
+        <input type="text" />
+      </CommentContainer>
+    </RubricRow>
   )
 }
 function Rubric({ rubric }) {
@@ -109,13 +163,12 @@ function Rubric({ rubric }) {
       <Nav />
       {rubric && (
         <>
-          <StyledRow>
-            <Heading>Topic</Heading>
-            <Heading>Weight</Heading>
+          <Headings template={`2fr repeat(${rubric.levels.length}, 2fr)`}>
+            <NonInteractiveItem />
             {rubric.levels.map(l => (
               <Heading key={l.di}>{l.name}</Heading>
             ))}
-          </StyledRow>
+          </Headings>
           {rubric.topics.map(topic => {
             return (
               <TopicRow
