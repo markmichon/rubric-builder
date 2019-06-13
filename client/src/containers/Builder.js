@@ -1,5 +1,6 @@
 /** @jsx jsx */
 import React, { useState, useEffect } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 import { css, jsx } from '@emotion/core'
 import styled from '@emotion/styled'
 import nanoid from 'nanoid'
@@ -15,6 +16,8 @@ import {
   editCriteria,
   addTopic,
 } from '../actions'
+
+const DEBOUNCE_TIME = 300
 
 const Label = styled.label`
   display: block;
@@ -83,16 +86,20 @@ const renderLevels = (levels, update, deleteLevel) => {
           type="text"
           id={`lName-${id}`}
           name={`lName-${id}`}
-          value={name}
-          onChange={e => update({ id: id, field: 'name' }, e)}
+          defaultValue={name}
+          onChange={e =>
+            update({ id: id, field: 'name', value: e.target.value })
+          }
         />
         <Label htmlFor={`lWeight-${id}`}>Weight</Label>
         <TextInput
           type="text"
           id={`lWeight-${id}`}
           name={`lWeight-${id}`}
-          value={weight}
-          onChange={e => update({ id: id, field: 'weight' }, e)}
+          defaultValue={weight}
+          onChange={e =>
+            update({ id: id, field: 'weight', value: e.target.value })
+          }
         />
       </Fieldset>
     )
@@ -130,39 +137,42 @@ function Builder({ levels, topics, criteria, dispatch }) {
     )
   }
 
-  const handleUpdateLevel = ({ id, field }, e) => {
+  const [handleUpdateLevel] = useDebouncedCallback(({ id, field, value }) => {
     dispatch(
       editLevel({
         ...levels.filter(level => level.id === id)[0],
-        [field]: e.target.value,
+        [field]: value,
       })
     )
-  }
+  }, DEBOUNCE_TIME)
 
-  const updateTopic = ({ id, field }, e) => {
+  const [updateTopic] = useDebouncedCallback(({ id, field, value }) => {
     dispatch(
       editTopic({
         ...topics.filter(topic => topic.id === id)[0],
-        [field]: e.target.value,
+        [field]: value,
       })
     )
-  }
+  }, DEBOUNCE_TIME)
 
-  const handleDeleteLevel = id => {
-    console.log('Delete:', id)
+  const [handleDeleteLevel] = useDebouncedCallback(id => {
     dispatch(
       deleteLevel({
         id,
       })
     )
-  }
+  }, DEBOUNCE_TIME)
 
-  const handleDeleteTopic = id => {
+  const [handleDeleteTopic] = useDebouncedCallback(id => {
     dispatch({
       type: 'DELETE_TOPIC',
       payload: { id },
     })
-  }
+  }, DEBOUNCE_TIME)
+
+  const [debounceDispatch] = useDebouncedCallback(fn => {
+    dispatch(fn)
+  }, DEBOUNCE_TIME)
 
   return (
     <div>
@@ -210,9 +220,13 @@ function Builder({ levels, topics, criteria, dispatch }) {
                   type="text"
                   id={`tName-${topic.id}`}
                   name={`tName-${topic.id}`}
-                  value={topic.name}
+                  defaultValue={topic.name}
                   onChange={e =>
-                    updateTopic({ field: 'name', id: topic.id }, e)
+                    updateTopic({
+                      field: 'name',
+                      id: topic.id,
+                      value: e.target.value,
+                    })
                   }
                 />
                 <Label htmlFor={`tWeight-${topic.id}`}>Weight</Label>
@@ -220,9 +234,13 @@ function Builder({ levels, topics, criteria, dispatch }) {
                   type="text"
                   id={`tWeight-${topic.id}`}
                   name={`tWeight-${topic.id}`}
-                  value={topic.weight}
+                  defaultValue={topic.weight}
                   onChange={e =>
-                    updateTopic({ field: 'weight', id: topic.id }, e)
+                    updateTopic({
+                      field: 'weight',
+                      id: topic.id,
+                      value: e.target.value,
+                    })
                   }
                 />
               </Fieldset>
@@ -235,7 +253,7 @@ function Builder({ levels, topics, criteria, dispatch }) {
                   <input
                     type="checkbox"
                     id={`${topic.id}-${criteria.id}-disabled`}
-                    checked={!!criteria.disabled}
+                    checked={criteria.disabled}
                     onChange={e =>
                       dispatch(
                         editCriteria({
@@ -250,10 +268,10 @@ function Builder({ levels, topics, criteria, dispatch }) {
                   />
                   <TextArea
                     id={criteria.id}
-                    value={criteria.description}
+                    defaultValue={criteria.description}
                     disabled={criteria.disabled}
                     onChange={e =>
-                      dispatch(
+                      debounceDispatch(
                         editCriteria({
                           id: topic.id,
                           criteria: {
