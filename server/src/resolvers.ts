@@ -8,12 +8,12 @@ export const resolvers = {
       }
       return { email: context.user.email }
     },
+  },
+  Mutation: {
     login: async (parent: any, args: any, context: any) => {
       const user = await User.login(args)
       return user
     },
-  },
-  Mutation: {
     signup: async (parent: any, args: any, context: any) => {
       const user = await User.signup(args)
       if (!user) {
