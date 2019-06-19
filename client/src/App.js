@@ -7,6 +7,11 @@ import { Provider } from 'react-redux'
 import configureStore from './configureStore'
 import { PersistGate } from 'redux-persist/integration/react'
 import { Global, css } from '@emotion/core'
+import Apollo from './setupApollo'
+import { useQuery, useMutation } from 'react-apollo'
+import gql from 'graphql-tag'
+
+import LoginForm from './components/LoginForm'
 
 const globalStyles = css`
   * {
@@ -50,18 +55,59 @@ function Home() {
   )
 }
 
-function App() {
+const IS_LOGGED_IN = gql`
+  query isLoggedIn {
+    isLoggedIn @client(always: true)
+  }
+`
+
+const LoggedOut = () => <LoginForm />
+
+const LOG_OUT = gql`
+  mutation logout {
+    logOut @client
+  }
+`
+const LoggedIn = () => {
+  const [logout, { error, loading, data }] = useMutation(LOG_OUT, {})
+
+  const handleLogOut = () => {
+    logout()
+  }
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <Global styles={globalStyles} />
+    <>
+      <main>
+        <h1>Hello</h1>
+        <button onClick={handleLogOut}>Log Out</button>
         <Router>
           <Home path="/" />
           <Rubric path="/rubric" />
           <Builder path="/builder" />
         </Router>
-      </PersistGate>
-    </Provider>
+      </main>
+    </>
+  )
+}
+
+const AuthHandler = () => {
+  const { data } = useQuery(IS_LOGGED_IN)
+  const { isLoggedIn } = data
+  console.log(data)
+
+  if (isLoggedIn) return <LoggedIn />
+  return <LoggedOut />
+}
+
+function App() {
+  return (
+    <Apollo>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <Global styles={globalStyles} />
+          <AuthHandler />
+        </PersistGate>
+      </Provider>
+    </Apollo>
   )
 }
 
