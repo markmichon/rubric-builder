@@ -7,11 +7,11 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "rubric-server",
-    "rubric-client"
+    "rubric-client",
+    "rubric-server"
   ],
   "scripts": {
     "start-client": "yarn workspace rubric-client start",
-    "start-server": "yarn wowrkspace rubric-server start"
+    "start-server": "yarn workspace rubric-server start"
   }
 }
