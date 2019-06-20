@@ -1,5 +1,16 @@
 import { gql } from 'apollo-server-express'
 export const typeDefs = gql`
+  type Query {
+    getMe: User!
+    getRubrics: [Rubric]
+    getRubric(id: String!): Rubric
+  }
+
+  type Mutation {
+    login(email: String!, password: String!): UserPayload!
+    signup(email: String!, password: String!): UserPayload!
+    makeRubric(rubric: RubricInput): Rubric
+  }
   type User {
     email: String!
   }
@@ -9,12 +20,53 @@ export const typeDefs = gql`
     token: String!
   }
 
-  type Query {
-    getMe: User!
+  type Rubric {
+    id: ID!
+    owner: String!
+    name: String!
+    levels: [Level]
+    topics: [Topic]
   }
 
-  type Mutation {
-    login(email: String!, password: String!): UserPayload!
-    signup(email: String!, password: String!): UserPayload!
+  type Level {
+    id: ID!
+    name: String!
+    weight: Int!
+  }
+
+  type Topic {
+    id: ID!
+    name: String!
+    weight: Int!
+    criteria: [Criteria]!
+  }
+
+  type Criteria {
+    id: ID!
+    description: String!
+    disabled: Boolean!
+  }
+
+  input RubricInput {
+    id: ID!
+    name: String!
+    levels: [LevelInput]
+    topics: [TopicInput]
+  }
+
+  input LevelInput {
+    name: String!
+    weight: Int!
+  }
+
+  input TopicInput {
+    name: String!
+    weight: Int!
+    criteria: [CriteriaInput]!
+  }
+
+  input CriteriaInput {
+    description: String!
+    disabled: Boolean
   }
 `

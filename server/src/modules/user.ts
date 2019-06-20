@@ -1,12 +1,13 @@
-import * as mongoose from 'mongoose'
+import { Schema, model } from 'mongoose'
 import * as bcrypt from 'bcrypt'
 import * as jwt from 'jsonwebtoken'
+import { RubricSchema } from './rubric'
 interface UserInteface {
   email: string
   password?: string
 }
 
-const UserSchema = new mongoose.Schema(
+const UserSchema = new Schema(
   {
     email: {
       type: String,
@@ -22,11 +23,12 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: 'user',
     },
+    rubrics: [{ type: Schema.Types.ObjectId, ref: 'Rubric' }],
   },
   { timestamps: true }
 )
 
-export const UserModel = mongoose.model('User', UserSchema)
+export const UserModel = model('User', UserSchema)
 
 const generateJWT = (user: any) =>
   jwt.sign(
@@ -36,8 +38,7 @@ const generateJWT = (user: any) =>
         email: user.email,
       },
     },
-    process.env.JWT_SECRET,
-    { expiresIn: '6h' }
+    process.env.JWT_SECRET
   )
 
 const getByToken = async (token: string) => {
@@ -48,7 +49,7 @@ const getByToken = async (token: string) => {
       return user
     }
   } catch (err) {
-    return false
+    throw new Error('Could not validate user based on token')
   }
 }
 const login = async ({ email, password }) => {
@@ -91,8 +92,11 @@ const signup = async ({ email, password }) => {
   }
 }
 
+const get = (userId: string) => UserModel.findById(userId)
+
 export const User = {
   login,
   signup,
   getByToken,
+  get,
 }

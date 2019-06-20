@@ -17,7 +17,7 @@ const startServer = async () => {
       try {
         const user = await User.getByToken(token)
         if (user) {
-          return { user }
+          return { token }
         }
       } catch (err) {
         console.log(err)

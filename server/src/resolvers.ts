@@ -1,12 +1,40 @@
 import { User } from './modules/user'
-
+import { Rubric } from './modules/rubric'
 export const resolvers = {
   Query: {
-    getMe: (parent: any, args: any, context: any) => {
-      if (!context.user) {
+    getMe: async (parent: any, args: any, context: any) => {
+      const user = await User.getByToken(context.token)
+      if (!user || !context.token) {
         throw new Error('Not logged in')
       }
-      return { email: context.user.email }
+      return { email: user.email }
+    },
+    getRubrics: async (parent: any, args: any, context: any) => {
+      const { token } = context
+      // 1. Check if user is logged in
+      const user = await User.getByToken(token)
+      if (!user) {
+        throw new Error('You must be logged in to view rubrics')
+      }
+      // 2. Query Rubrics that belong to user
+      const rubrics = await Rubric.getAllByUserId(user._id)
+
+      if (!rubrics) {
+        throw new Error('no rubrics found for that user')
+      }
+      // 3. Return array of Rubrics
+      return rubrics
+    },
+    getRubric: async (parent: any, { id }, { token }) => {
+      // 1. Check if user is logged in
+      const user = await User.getByToken(token)
+      // 2. Get Rubric by ID and confirm it belongs to user
+      const rubric = await Rubric.getById(id)
+      if (rubric.owner.toString() !== user._id.toString()) {
+        throw new Error('You do not have permission to view this rubric')
+      }
+      // 3. Return Rubric
+      return rubric
     },
   },
   Mutation: {
@@ -20,6 +48,19 @@ export const resolvers = {
         throw new Error('Failed to create user')
       }
       return user
+    },
+    makeRubric: async (parent: any, { rubric }, { token }) => {
+      const user = await User.getByToken(token)
+      if (!user) {
+        throw new Error('Cannot create rubric unless logged in')
+      }
+      const rubricWithOwner = {
+        ...rubric,
+        owner: user._id,
+      }
+      const addedRubric = await Rubric.create(rubricWithOwner)
+
+      return addedRubric
     },
   },
 }
