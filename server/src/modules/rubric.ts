@@ -15,12 +15,20 @@ const LevelSchema = new Schema({
 const CriteriaSchema = new Schema({
   description: {
     type: String,
-    required: true,
+    default: '',
   },
   disabled: {
     type: Boolean,
     required: true,
     default: false,
+  },
+  levelName: {
+    type: String,
+    required: true,
+  },
+  weight: {
+    type: Number,
+    required: true,
   },
 })
 

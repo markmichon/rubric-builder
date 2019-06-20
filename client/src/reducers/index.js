@@ -4,7 +4,7 @@ import nanoid from 'nanoid'
 const firstLevel = {
   id: nanoid(),
   name: '',
-  weight: '',
+  weight: null,
 }
 const initLevels = [firstLevel]
 function levels(state = initLevels, { type, payload }) {
@@ -27,7 +27,7 @@ function levels(state = initLevels, { type, payload }) {
 const firstTopic = {
   id: nanoid(),
   name: '',
-  weight: '',
+  weight: null,
 }
 const initTopics = [firstTopic]
 
@@ -140,8 +140,14 @@ function criteria(state = initCriteria, { type, payload }) {
   }
 }
 
-const getLevelById = (state, id) =>
-  state.levels.filter(level => level.id === id)[0]
+const getLevelById = (state, id) => {
+  const level = state.levels.filter(level => level.id === id)[0]
+
+  return {
+    levelName: level.name,
+    weight: level.weight,
+  }
+}
 export const getLevels = state => state.levels
 export const getAllCriteria = state => state.criteria
 export const getCriteriaById = (state, id) => state[id]
@@ -153,6 +159,7 @@ export const getTopics = state => {
 }
 
 export const getFullRubric = state => ({
+  name: 'TEST NAME',
   levels: state.levels,
   topics: getTopics(state).map(topic => ({
     ...topic,

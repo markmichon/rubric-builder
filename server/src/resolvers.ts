@@ -2,14 +2,14 @@ import { User } from './modules/user'
 import { Rubric } from './modules/rubric'
 export const resolvers = {
   Query: {
-    getMe: async (parent: any, args: any, { token }) => {
+    me: async (parent: any, args: any, { token }) => {
       const user = await User.getByToken(token)
       if (!user || !token) {
         throw new Error('Not logged in')
       }
       return { email: user.email }
     },
-    getRubrics: async (parent: any, args: any, { token }) => {
+    rubrics: async (parent: any, args: any, { token }) => {
       // 1. Check if user is logged in
       const user = await User.getByToken(token)
       if (!user) {
@@ -24,7 +24,7 @@ export const resolvers = {
       // 3. Return array of Rubrics
       return rubrics
     },
-    getRubric: async (parent: any, { id }, { token }) => {
+    rubric: async (parent: any, { id }, { token }) => {
       // 1. Check if user is logged in
       const user = await User.getByToken(token)
       // 2. Get Rubric by ID and confirm it belongs to user

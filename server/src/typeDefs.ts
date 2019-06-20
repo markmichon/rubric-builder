@@ -1,9 +1,9 @@
 import { gql } from 'apollo-server-express'
 export const typeDefs = gql`
   type Query {
-    getMe: User!
-    getRubrics: [Rubric]
-    getRubric(id: String!): Rubric
+    me: User!
+    rubrics: [Rubric]
+    rubric(id: String!): Rubric
   }
 
   type Mutation {
@@ -50,28 +50,36 @@ export const typeDefs = gql`
     id: ID!
     description: String!
     disabled: Boolean!
+    ### Should these be here, or should they be handled dynamically on the client
+    levelName: String!
+    weight: Int!
   }
 
   input RubricInput {
-    id: ID!
+    id: ID
     name: String!
     levels: [LevelInput]
     topics: [TopicInput]
   }
 
   input LevelInput {
+    id: ID
     name: String!
     weight: Int!
   }
 
   input TopicInput {
+    id: ID
     name: String!
     weight: Int!
     criteria: [CriteriaInput]!
   }
 
   input CriteriaInput {
-    description: String!
+    id: ID
+    description: String
     disabled: Boolean
+    levelName: String!
+    weight: Int!
   }
 `

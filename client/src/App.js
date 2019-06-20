@@ -49,7 +49,7 @@ const { store, persistor } = configureStore()
 
 const GET_RUBRICS = gql`
   query {
-    getRubrics {
+    rubrics {
       id
       name
       # createdAt
@@ -59,14 +59,14 @@ const GET_RUBRICS = gql`
 `
 function Dashboard() {
   const { data, error, loading } = useQuery(GET_RUBRICS)
-  const { getRubrics } = data
+  const { rubrics } = data
   if (loading) return <p>Loading...</p>
   if (error) return <p>Error: {error.message}</p>
   return (
     <div>
       <h1>Dashboard</h1>
       {/* <Nav /> */}
-      {getRubrics.map(rubric => (
+      {rubrics.map(rubric => (
         <Link to={`rubric/${rubric.id}`}>{rubric.name}</Link>
       ))}
     </div>
@@ -110,7 +110,6 @@ const LoggedIn = () => {
 const AuthHandler = () => {
   const { data } = useQuery(IS_LOGGED_IN)
   const { isLoggedIn } = data
-  console.log(data)
 
   if (isLoggedIn) return <LoggedIn />
   return <LoggedOut />

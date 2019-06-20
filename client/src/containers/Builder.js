@@ -1,5 +1,7 @@
 /** @jsx jsx */
 import React, { useState, useEffect } from 'react'
+import { useMutation } from 'react-apollo'
+import gql from 'graphql-tag'
 import { useDebouncedCallback } from 'use-debounce'
 import { css, jsx } from '@emotion/core'
 import styled from '@emotion/styled'
@@ -7,7 +9,7 @@ import nanoid from 'nanoid'
 import { connect } from 'react-redux'
 import Nav from '../components/Nav'
 import RubricRow from '../components/RubricRow'
-import { getTopics } from '../reducers'
+import { getTopics, getFullRubric } from '../reducers'
 import {
   addLevel,
   editLevel,
@@ -98,7 +100,7 @@ const renderLevels = (levels, update, deleteLevel) => {
           name={`lWeight-${id}`}
           defaultValue={weight}
           onChange={e =>
-            update({ id: id, field: 'weight', value: e.target.value })
+            update({ id: id, field: 'weight', value: Number(e.target.value) })
           }
         />
       </Fieldset>
@@ -106,9 +108,22 @@ const renderLevels = (levels, update, deleteLevel) => {
   })
 }
 
-function Builder({ levels, topics, criteria, dispatch }) {
-  const [output, setOutput] = useState(null)
+const SAVE_RUBRIC = gql`
+  mutation makeRubric($rubricData: RubricInput) {
+    makeRubric(rubric: $rubricData) {
+      name
+      id
+    }
+  }
+`
 
+function Builder({ levels, topics, criteria, finalRubric, dispatch }) {
+  const [output, setOutput] = useState(null)
+  const [makeRubric, { error, loading, data }] = useMutation(SAVE_RUBRIC, {
+    variables: {
+      rubricData: finalRubric,
+    },
+  })
   useEffect(() => {
     // Reconcile levels with topics
     // TODO: Move up the tree to fire on app load rather than builder load
@@ -121,9 +136,9 @@ function Builder({ levels, topics, criteria, dispatch }) {
 
   const save = () => {
     setOutput({
-      levels: levels,
-      topics: topics,
+      finalRubric,
     })
+    makeRubric()
   }
 
   const processLevelForm = e => {
@@ -239,7 +254,7 @@ function Builder({ levels, topics, criteria, dispatch }) {
                     updateTopic({
                       field: 'weight',
                       id: topic.id,
-                      value: e.target.value,
+                      value: Number(e.target.value),
                     })
                   }
                 />
@@ -300,6 +315,7 @@ function Builder({ levels, topics, criteria, dispatch }) {
       <button onClick={save}>Save Rubric</button>
       <hr />
       {output && <textarea value={`${JSON.stringify(output)}`} readOnly />}
+      {data && <p>Rubric Successfully Saved 👍</p>}
     </div>
   )
 }
@@ -308,5 +324,6 @@ const mapStateToProps = state => ({
   levels: state.levels,
   topics: getTopics(state),
   criteria: state.criteria,
+  finalRubric: getFullRubric(state),
 })
 export default connect(mapStateToProps)(Builder)

@@ -1,6 +1,8 @@
 /** @jsx jsx */
 import React, { useState, useEffect } from 'react'
 import { css, jsx } from '@emotion/core'
+import { useQuery } from 'react-apollo'
+import gql from 'graphql-tag'
 import styled from '@emotion/styled'
 import Nav from '../components/Nav'
 import { connect } from 'react-redux'
@@ -159,14 +161,14 @@ function Rubric({ rubric }) {
 
   return (
     <div>
-      <h1>Rubric</h1>
       <Nav />
-      {rubric && (
+      {rubric ? (
         <>
+          <h2>{rubric.name}</h2>
           <Headings template={`2fr repeat(${rubric.levels.length}, 2fr)`}>
             <NonInteractiveItem />
             {rubric.levels.map(l => (
-              <Heading key={l.di}>{l.name}</Heading>
+              <Heading key={l.id}>{l.name}</Heading>
             ))}
           </Headings>
           {rubric.topics.map(topic => {
@@ -180,12 +182,48 @@ function Rubric({ rubric }) {
           })}
           <div>Final Grade: {finalGrade}</div>
         </>
+      ) : (
+        <p>No rubric found</p>
       )}
     </div>
   )
 }
 
+const GET_RUBRIC_BY_ID = gql`
+  query rubric($id: String!) {
+    rubric(id: $id) {
+      name
+      levels {
+        id
+        name
+        weight
+      }
+      topics {
+        id
+        name
+        weight
+        criteria {
+          id
+          description
+          disabled
+        }
+      }
+    }
+  }
+`
+
+function RubricQueryWrapper({ rubricId }) {
+  const { data, error, loading } = useQuery(GET_RUBRIC_BY_ID, {
+    variables: { id: rubricId },
+  })
+
+  if (loading) return <p>Loading...</p>
+  if (error) return <p>{error}</p>
+  return <Rubric rubric={data.rubric} />
+}
+
 const mapState = state => ({
   rubric: getFullRubric(state),
 })
-export default connect(mapState)(Rubric)
+// export default connect(mapState)(Rubric)
+export default RubricQueryWrapper
