@@ -46,11 +46,29 @@ const globalStyles = css`
 `
 
 const { store, persistor } = configureStore()
-function Home() {
+
+const GET_RUBRICS = gql`
+  query {
+    getRubrics {
+      id
+      name
+      # createdAt
+      # updatedAt
+    }
+  }
+`
+function Dashboard() {
+  const { data, error, loading } = useQuery(GET_RUBRICS)
+  const { getRubrics } = data
+  if (loading) return <p>Loading...</p>
+  if (error) return <p>Error: {error.message}</p>
   return (
     <div>
-      <h1>Rubric Builder</h1>
-      <Nav />
+      <h1>Dashboard</h1>
+      {/* <Nav /> */}
+      {getRubrics.map(rubric => (
+        <Link to={`rubric/${rubric.id}`}>{rubric.name}</Link>
+      ))}
     </div>
   )
 }
@@ -80,8 +98,8 @@ const LoggedIn = () => {
         <h1>Hello</h1>
         <button onClick={handleLogOut}>Log Out</button>
         <Router>
-          <Home path="/" />
-          <Rubric path="/rubric" />
+          <Dashboard path="/" />
+          <Rubric path="/rubric/:rubricId" />
           <Builder path="/builder" />
         </Router>
       </main>

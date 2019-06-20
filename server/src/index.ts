@@ -13,11 +13,12 @@ const startServer = async () => {
     typeDefs,
     resolvers,
     context: async ({ req, res }: any) => {
+      console.log(req.headers)
       const token = req.headers.authorization || ''
       try {
         const user = await User.getByToken(token)
         if (user) {
-          return { token }
+          return { user, token }
         }
       } catch (err) {
         console.log(err)

@@ -33,23 +33,20 @@ export const UserModel = model('User', UserSchema)
 const generateJWT = (user: any) =>
   jwt.sign(
     {
-      data: {
-        _id: user._id,
-        email: user.email,
-      },
+      _id: user._id,
     },
     process.env.JWT_SECRET
   )
 
 const getByToken = async (token: string) => {
   try {
-    const { data } = jwt.verify(token, process.env.JWT_SECRET)
-    const user = await UserModel.findById(data._id)
+    const { _id } = jwt.verify(token, process.env.JWT_SECRET)
+    const user = await UserModel.findOne({ _id: _id })
     if (user) {
       return user
     }
   } catch (err) {
-    throw new Error('Could not validate user based on token')
+    throw new Error(err)
   }
 }
 const login = async ({ email, password }) => {

@@ -2,15 +2,14 @@ import { User } from './modules/user'
 import { Rubric } from './modules/rubric'
 export const resolvers = {
   Query: {
-    getMe: async (parent: any, args: any, context: any) => {
-      const user = await User.getByToken(context.token)
-      if (!user || !context.token) {
+    getMe: async (parent: any, args: any, { token }) => {
+      const user = await User.getByToken(token)
+      if (!user || !token) {
         throw new Error('Not logged in')
       }
       return { email: user.email }
     },
-    getRubrics: async (parent: any, args: any, context: any) => {
-      const { token } = context
+    getRubrics: async (parent: any, args: any, { token }) => {
       // 1. Check if user is logged in
       const user = await User.getByToken(token)
       if (!user) {
@@ -39,15 +38,15 @@ export const resolvers = {
   },
   Mutation: {
     login: async (parent: any, args: any, context: any) => {
-      const user = await User.login(args)
-      return user
+      const userPayload = await User.login(args)
+      return userPayload
     },
     signup: async (parent: any, args: any, context: any) => {
-      const user = await User.signup(args)
-      if (!user) {
+      const userPayload = await User.signup(args)
+      if (!userPayload) {
         throw new Error('Failed to create user')
       }
-      return user
+      return userPayload
     },
     makeRubric: async (parent: any, { rubric }, { token }) => {
       const user = await User.getByToken(token)
