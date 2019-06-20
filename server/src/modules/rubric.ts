@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose'
+import merge from 'lodash/merge'
 import { User } from './user'
 const LevelSchema = new Schema({
   name: {
@@ -67,10 +68,25 @@ const getById = async id => {
 
 const create = (rubric: any) => RubricModel.create(rubric)
 
+const update = async (rubric: any) => {
+  let { id } = rubric
+  let oldRubric = await RubricModel.findById(id)
+  delete rubric._id
+  let newRubric = merge(oldRubric, rubric)
+  let { n, nModified, ok } = await RubricModel.replaceOne(
+    { _id: id },
+    newRubric
+  )
+  if (ok) {
+    return true
+  }
+  return false
+}
 export const RubricModel = model('Rubric', RubricSchema)
 
 export const Rubric = {
   getAllByUserId,
   getById,
   create,
+  update,
 }

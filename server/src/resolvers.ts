@@ -62,5 +62,16 @@ export const resolvers = {
 
       return addedRubric
     },
+    updateRubric: async (parent: any, { rubric }, { token }) => {
+      const user = await User.getByToken(token)
+      if (!user) {
+        throw new Error('Cannot create rubric unless logged in')
+      }
+      const success = await Rubric.update(rubric)
+      if (!success) {
+        throw new Error('Failed to update Rubric')
+      }
+      return { success }
+    },
   },
 }

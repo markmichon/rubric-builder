@@ -10,6 +10,11 @@ export const typeDefs = gql`
     login(email: String!, password: String!): UserPayload!
     signup(email: String!, password: String!): UserPayload!
     makeRubric(rubric: RubricInput): Rubric
+    updateRubric(rubric: RubricInput): SuccessState
+  }
+
+  type SuccessState {
+    success: Boolean!
   }
   type User {
     email: String!
