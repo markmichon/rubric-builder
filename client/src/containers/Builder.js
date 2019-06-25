@@ -117,7 +117,7 @@ const SAVE_RUBRIC = gql`
   }
 `
 
-function Builder({ levels, topics, criteria, finalRubric, dispatch }) {
+function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
   const [output, setOutput] = useState(null)
   const [makeRubric, { error, loading, data }] = useMutation(SAVE_RUBRIC, {
     variables: {
@@ -135,9 +135,7 @@ function Builder({ levels, topics, criteria, finalRubric, dispatch }) {
   }, [])
 
   const save = () => {
-    setOutput({
-      finalRubric,
-    })
+    setOutput(finalRubric)
     makeRubric()
   }
 
@@ -189,12 +187,34 @@ function Builder({ levels, topics, criteria, finalRubric, dispatch }) {
     dispatch(fn)
   }, DEBOUNCE_TIME)
 
+  const resetBuilder = () => {
+    dispatch({
+      type: 'RESET_ALL',
+    })
+  }
+
   return (
     <div>
       <h1>Builder</h1>
       <Nav />
+      <button onClick={resetBuilder}>Reset</button>
       <form onSubmit={processLevelForm}>
-        <p>Create Achievement Levles</p>
+        <label htmlFor="rubricName">Rubric Name</label>
+        <input
+          type="text"
+          id="rubricName"
+          name="rubricName"
+          defaultValue={name}
+          onChange={e => {
+            debounceDispatch(
+              dispatch({
+                type: 'EDIT_NAME',
+                payload: e.target.value,
+              })
+            )
+          }}
+        />
+        <p>Create Achievement Levels</p>
         <div
           css={css`
             display: flex;
@@ -321,6 +341,7 @@ function Builder({ levels, topics, criteria, finalRubric, dispatch }) {
 }
 
 const mapStateToProps = state => ({
+  name: state.name,
   levels: state.levels,
   topics: getTopics(state),
   criteria: state.criteria,

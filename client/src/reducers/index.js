@@ -1,6 +1,15 @@
 import { combineReducers } from 'redux'
 import nanoid from 'nanoid'
 
+function name(state = '', { type, payload }) {
+  switch (type) {
+    case 'EDIT_NAME':
+      return payload
+    default:
+      return state
+  }
+}
+
 const firstLevel = {
   id: nanoid(),
   name: '',
@@ -159,7 +168,7 @@ export const getTopics = state => {
 }
 
 export const getFullRubric = state => ({
-  name: 'TEST NAME',
+  name: state.name,
   levels: state.levels,
   topics: getTopics(state).map(topic => ({
     ...topic,
@@ -170,8 +179,19 @@ export const getFullRubric = state => ({
   })),
 })
 
-export default combineReducers({
+const appReducer = combineReducers({
+  name,
   levels,
   topics,
   criteria,
 })
+
+const rootReducer = (state, action) => {
+  if (action.type === 'RESET_ALL') {
+    localStorage.removeItem('persist:root')
+    state = undefined
+  }
+  return appReducer(state, action)
+}
+
+export default rootReducer
