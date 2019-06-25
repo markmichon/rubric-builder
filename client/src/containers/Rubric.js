@@ -4,6 +4,7 @@ import { css, jsx } from '@emotion/core'
 import { useQuery } from 'react-apollo'
 import gql from 'graphql-tag'
 import styled from '@emotion/styled'
+import { Link } from '@reach/router'
 import Nav from '../components/Nav'
 import { connect } from 'react-redux'
 import { getFullRubric } from '../reducers'
@@ -90,6 +91,7 @@ function TopicRow({ name, weight, id, criteria, handleUpdate }) {
   const handleChange = (criteria, e) => {
     if (e.target.checked && e.target.value) {
       const grade = weight * (criteria.weight / 100)
+      console.log(criteria)
       handleUpdate({
         topic: id,
         criteria,
@@ -164,7 +166,9 @@ function Rubric({ rubric }) {
       <Nav />
       {rubric ? (
         <>
-          <h2>{rubric.name}</h2>
+          <h2>
+            {rubric.name} <Link to="/builder/:id">Edit</Link>
+          </h2>
           <Headings template={`2fr repeat(${rubric.levels.length}, 2fr)`}>
             <NonInteractiveItem />
             {rubric.levels.map(l => (
@@ -206,6 +210,7 @@ const GET_RUBRIC_BY_ID = gql`
           id
           description
           disabled
+          weight
         }
       }
     }

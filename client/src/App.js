@@ -66,9 +66,14 @@ function Dashboard() {
     <div>
       <h1>Dashboard</h1>
       {/* <Nav /> */}
-      {rubrics.map(rubric => (
-        <Link to={`rubric/${rubric.id}`}>{rubric.name}</Link>
-      ))}
+      <Link to="/builder">Create new Rubric</Link>
+      <ul>
+        {rubrics.map(rubric => (
+          <li key={rubric.id}>
+            <Link to={`rubric/${rubric.id}`}>{rubric.name}</Link>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
