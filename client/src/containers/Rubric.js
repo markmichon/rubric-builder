@@ -167,7 +167,10 @@ function Rubric({ rubric }) {
       {rubric ? (
         <>
           <h2>
-            {rubric.name} <Link to="/builder/:id">Edit</Link>
+            {rubric.name}{' '}
+            <Link to={`/builder/${rubric.id}`} state={{ editing: true }}>
+              Edit
+            </Link>
           </h2>
           <Headings template={`2fr repeat(${rubric.levels.length}, 2fr)`}>
             <NonInteractiveItem />
@@ -196,6 +199,7 @@ function Rubric({ rubric }) {
 const GET_RUBRIC_BY_ID = gql`
   query rubric($id: String!) {
     rubric(id: $id) {
+      id
       name
       levels {
         id

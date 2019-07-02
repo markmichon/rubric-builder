@@ -1,6 +1,6 @@
 /** @jsx jsx */
-import React, { useState, useEffect } from 'react'
-import { useMutation } from 'react-apollo'
+import React, { useState, useEffect, useReducer } from 'react'
+import { useMutation, useQuery } from 'react-apollo'
 import gql from 'graphql-tag'
 import { useDebouncedCallback } from 'use-debounce'
 import { css, jsx } from '@emotion/core'
@@ -76,122 +76,255 @@ const TextArea = styled.textarea`
   height: 8em;
 `
 
-const renderLevels = (levels, update, deleteLevel) => {
-  return levels.map(({ id, name, weight }, idx) => {
-    return (
-      <Fieldset key={`level-${id}`}>
-        <button type="button" onClick={e => deleteLevel(id)}>
-          X
-        </button>
-        <Label htmlFor={`lName-${id}`}>Tier Name</Label>
-        <TextInput
-          type="text"
-          id={`lName-${id}`}
-          name={`lName-${id}`}
-          defaultValue={name}
-          onChange={e =>
-            update({ id: id, field: 'name', value: e.target.value })
-          }
-        />
-        <Label htmlFor={`lWeight-${id}`}>Weight</Label>
-        <TextInput
-          type="text"
-          id={`lWeight-${id}`}
-          name={`lWeight-${id}`}
-          defaultValue={weight}
-          onChange={e =>
-            update({ id: id, field: 'weight', value: Number(e.target.value) })
-          }
-        />
-      </Fieldset>
-    )
-  })
-}
-
 const SAVE_RUBRIC = gql`
-  mutation makeRubric($rubricData: RubricInput) {
-    makeRubric(rubric: $rubricData) {
-      name
-      id
+  mutation saveRubric($rubricData: RubricInput) {
+    saveRubric(rubric: $rubricData) {
+      success
     }
   }
 `
+// const UPDATE_RUBRIC = gql`
+//   mutation ()
+// `
 
-function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
+const baseReducer = name => (state, { type, payload }) => {
+  switch (type) {
+    case `ADD_${name}`:
+      return [...state, { ...payload }]
+    case `DELETE_${name}`:
+      return state.filter(item => item.id !== payload.id)
+    case `EDIT_${name}`:
+      return state.map(item => {
+        if (item.id === payload.id) {
+          return { ...item, ...payload }
+        }
+        return item
+      })
+    case `RECONCILE_${name}`:
+      return payload
+    default:
+      return state
+  }
+}
+
+const topicReducer = baseReducer('TOPIC')
+const levelReducer = baseReducer('LEVEL')
+
+function critReducer(state, { type, payload }) {
+  switch (type) {
+    case 'ADD':
+      return {
+        ...state,
+        [payload.topicId]: payload.criteria,
+      }
+    case 'EDIT':
+      return {
+        ...state,
+        [payload.topicId]: state[payload.topicId].map(criteria => {
+          if (criteria.id === payload.criteria.id) {
+            return payload.criteria
+          }
+          return criteria
+        }),
+      }
+    case 'RECONCILE':
+      let newState = {}
+      const keysArr = Object.keys(state)
+      if (keysArr.length) {
+        keysArr.forEach(key => {
+          newState = {
+            ...newState,
+            [key]: reconcileCriteria(state[key], payload.levels),
+          }
+        })
+        return newState
+      }
+      return {
+        [payload.topics[0].id]: reconcileCriteria([], payload.levels),
+      }
+    default:
+      return state
+  }
+}
+function reconcileCriteria(criteria = [], levels = []) {
+  return levels.map((level, idx) => {
+    const newLevel = { ...level }
+    delete newLevel.id
+    delete newLevel.name
+    if (criteria[idx]) {
+      return {
+        ...criteria[idx],
+        ...newLevel,
+        levelName: level.name,
+      }
+    }
+    return {
+      ...newLevel,
+      levelName: level.name,
+      id: nanoid(),
+      description: '',
+      disabled: false,
+    }
+  })
+}
+// const initCriteria ={
+//   [initTopic.id]: [
+//     {
+//       id: initLevel.id,
+//       description: '',
+//       disabled: false,
+//     },
+//   ],
+// }
+
+const initLevel = {
+  id: nanoid(),
+  name: '',
+  weight: null,
+}
+const initTopic = {
+  id: nanoid(),
+  name: '',
+  weight: null,
+  // criteria: [
+  //   {
+  //     ...initLevel,
+  //     description: '',
+  //     disabled: false,
+  //   },
+  // ],
+}
+
+function parseCriteria(topics) {
+  let result = {}
+
+  topics.forEach(topic => {
+    result = {
+      ...result,
+      [topic.id]: topic.criteria,
+    }
+  })
+  return result
+}
+
+function Builder({ rubric = {}, editing = false }) {
   const [output, setOutput] = useState(null)
-  const [makeRubric, { error, loading, data }] = useMutation(SAVE_RUBRIC, {
+  const [name, setName] = useState(rubric.name || '')
+  const [levels, setLevels] = useReducer(
+    levelReducer,
+    rubric.levels || [initLevel]
+  )
+  const [topics, setTopics] = useReducer(
+    topicReducer,
+    rubric.topics || [initTopic]
+  )
+  const [criteria, setCriteria] = useReducer(
+    critReducer,
+    rubric.topics
+      ? parseCriteria(rubric.topics)
+      : {
+          [initTopic.id]: [{ id: nanoid(), description: '', disabled: false }],
+        }
+  )
+
+  const [saveRubric, { error, loading, data }] = useMutation(SAVE_RUBRIC, {
     variables: {
-      rubricData: finalRubric,
+      rubricData: output,
     },
   })
   useEffect(() => {
-    // Reconcile levels with topics
-    // TODO: Move up the tree to fire on app load rather than builder load
-    dispatch({
-      type: 'RECONCILE_CRIT',
-      payload: { levels, topics },
+    setCriteria({
+      type: 'RECONCILE',
+      payload: {
+        topics,
+        levels,
+      },
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [levels, topics])
 
-  const save = () => {
-    setOutput(finalRubric)
-    makeRubric()
+  const save = async () => {
+    // setOutput(finalRubric)
+    let newRubric = {
+      name: name,
+      levels: levels,
+      topics: topics.map(topic => {
+        return {
+          ...topic,
+          criteria: criteria[topic.id],
+        }
+      }),
+    }
+    if (editing) {
+      newRubric.id = rubric.id
+    }
+    const omitTypename = (key, value) =>
+      key === '__typename' ? undefined : value
+    // eslint-disable-next-line no-param-reassign
+    newRubric = JSON.parse(JSON.stringify(newRubric), omitTypename)
+    await setOutput(newRubric)
+    saveRubric()
   }
 
   const processLevelForm = e => {
     e.preventDefault()
-    dispatch(
-      addLevel({
-        id: nanoid(),
+    const newID = nanoid()
+    setLevels({
+      type: 'ADD_LEVEL',
+      payload: {
+        id: newID,
         name: '',
-        weight: '',
-      })
-    )
+        weight: null,
+      },
+    })
   }
 
   const [handleUpdateLevel] = useDebouncedCallback(({ id, field, value }) => {
-    dispatch(
-      editLevel({
-        ...levels.filter(level => level.id === id)[0],
+    setLevels({
+      type: 'EDIT_LEVEL',
+      payload: {
+        id: id,
         [field]: value,
-      })
-    )
+      },
+    })
   }, DEBOUNCE_TIME)
 
   const [updateTopic] = useDebouncedCallback(({ id, field, value }) => {
-    dispatch(
-      editTopic({
-        ...topics.filter(topic => topic.id === id)[0],
+    setTopics({
+      type: 'EDIT_TOPIC',
+      payload: {
+        id: id,
         [field]: value,
-      })
-    )
-  }, DEBOUNCE_TIME)
-
-  const [handleDeleteLevel] = useDebouncedCallback(id => {
-    dispatch(
-      deleteLevel({
-        id,
-      })
-    )
-  }, DEBOUNCE_TIME)
-
-  const [handleDeleteTopic] = useDebouncedCallback(id => {
-    dispatch({
-      type: 'DELETE_TOPIC',
-      payload: { id },
+      },
     })
   }, DEBOUNCE_TIME)
 
-  const [debounceDispatch] = useDebouncedCallback(fn => {
-    dispatch(fn)
-  }, DEBOUNCE_TIME)
+  const handleDelete = (type, id) => {
+    if (type === 'TOPIC') {
+      setTopics({
+        type: 'DELETE_TOPIC',
+        payload: {
+          id,
+        },
+      })
+    }
+    if (type === 'LEVEL') {
+      setLevels({
+        type: 'DELETE_LEVEL',
+        payload: {
+          id,
+        },
+      })
+    }
+  }
 
   const resetBuilder = () => {
-    dispatch({
-      type: 'RESET_ALL',
-    })
+    // dispatch({
+    //   type: 'RESET_ALL',
+    // })
   }
+
+  const [debounce] = useDebouncedCallback(fn => fn, DEBOUNCE_TIME)
 
   return (
     <div>
@@ -206,12 +339,7 @@ function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
           name="rubricName"
           defaultValue={name}
           onChange={e => {
-            debounceDispatch(
-              dispatch({
-                type: 'EDIT_NAME',
-                payload: e.target.value,
-              })
-            )
+            debounce(setName(e.target.value))
           }}
         />
         <p>Create Achievement Levels</p>
@@ -220,7 +348,7 @@ function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
             display: flex;
           `}
         >
-          {renderLevels(levels, handleUpdateLevel, handleDeleteLevel)}
+          {renderLevels(levels, handleUpdateLevel, handleDelete)}
           <button type="submit">Add Another Achievement Level</button>
         </div>
       </form>
@@ -234,7 +362,7 @@ function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
         <RubricRow template={`repeat(${levels.length + 1}, 1fr)`}>
           <div>Topics</div>
           {levels.map(level => (
-            <div key={`level-${level.id}`}>{level.name}</div>
+            <div key={`level-heading-${level.id}`}>{level.name}</div>
           ))}
         </RubricRow>
         <form>
@@ -246,7 +374,7 @@ function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
               <Fieldset>
                 <button
                   type="button"
-                  onClick={e => handleDeleteTopic(topic.id)}
+                  onClick={e => handleDelete('TOPIC', topic.id)}
                 >
                   Delete Topic
                 </button>
@@ -290,15 +418,16 @@ function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
                     id={`${topic.id}-${criteria.id}-disabled`}
                     checked={criteria.disabled}
                     onChange={e =>
-                      dispatch(
-                        editCriteria({
-                          id: topic.id,
+                      setCriteria({
+                        type: 'EDIT',
+                        payload: {
+                          topicId: topic.id,
                           criteria: {
                             ...criteria,
                             disabled: e.target.checked ? true : false,
                           },
-                        })
-                      )
+                        },
+                      })
                     }
                   />
                   <TextArea
@@ -306,15 +435,16 @@ function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
                     defaultValue={criteria.description}
                     disabled={criteria.disabled}
                     onChange={e =>
-                      debounceDispatch(
-                        editCriteria({
-                          id: topic.id,
+                      setCriteria({
+                        type: 'EDIT',
+                        payload: {
+                          topicId: topic.id,
                           criteria: {
                             ...criteria,
                             description: e.target.value,
                           },
-                        })
-                      )
+                        },
+                      })
                     }
                   />
                 </CriteriaFieldset>
@@ -323,9 +453,29 @@ function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
           ))}
           <button
             type="button"
-            onClick={() =>
-              dispatch(addTopic({ id: nanoid(), name: '', weight: '' }))
-            }
+            onClick={() => {
+              let newId = nanoid()
+              setTopics({
+                type: 'ADD_TOPIC',
+                payload: {
+                  id: newId,
+                  name: '',
+                  weight: null,
+                },
+              })
+              setCriteria({
+                type: 'ADD',
+                payload: {
+                  topicId: newId,
+                  criteria: [
+                    {
+                      description: '',
+                      disabled: false,
+                    },
+                  ],
+                },
+              })
+            }}
           >
             Add new Topic
           </button>
@@ -335,16 +485,96 @@ function Builder({ name, levels, topics, criteria, finalRubric, dispatch }) {
       <button onClick={save}>Save Rubric</button>
       <hr />
       {output && <textarea value={`${JSON.stringify(output)}`} readOnly />}
-      {data && <p>Rubric Successfully Saved 👍</p>}
+      {data && (
+        <p>
+          Rubric saved status:{' '}
+          {data.saveRubric && data.saveRubric.success ? `👍` : ':('}
+        </p>
+      )}
     </div>
   )
 }
 
-const mapStateToProps = state => ({
-  name: state.name,
-  levels: state.levels,
-  topics: getTopics(state),
-  criteria: state.criteria,
-  finalRubric: getFullRubric(state),
-})
-export default connect(mapStateToProps)(Builder)
+function renderLevels(levels, update, deleteLevel) {
+  return levels.map(({ id, name, weight }, idx) => {
+    return (
+      <Fieldset key={`level-${id}`}>
+        <button type="button" onClick={e => deleteLevel('LEVEL', id)}>
+          X
+        </button>
+        <Label htmlFor={`lName-${id}`}>Tier Name</Label>
+        <TextInput
+          type="text"
+          id={`lName-${id}`}
+          name={`lName-${id}`}
+          defaultValue={name}
+          onChange={e =>
+            update({ id: id, field: 'name', value: e.target.value })
+          }
+        />
+        <Label htmlFor={`lWeight-${id}`}>Weight</Label>
+        <TextInput
+          type="text"
+          id={`lWeight-${id}`}
+          name={`lWeight-${id}`}
+          defaultValue={weight}
+          onChange={e =>
+            update({ id: id, field: 'weight', value: Number(e.target.value) })
+          }
+        />
+      </Fieldset>
+    )
+  })
+}
+
+// const mapStateToProps = state => ({
+//   name: state.name,
+//   levels: state.levels,
+//   topics: getTopics(state),
+//   criteria: state.criteria,
+//   finalRubric: getFullRubric(state),
+// })
+// export default connect(mapStateToProps)(Builder)
+
+const GET_RUBRIC_BY_ID = gql`
+  query rubric($id: String!) {
+    rubric(id: $id) {
+      name
+      id
+      levels {
+        id
+        name
+        weight
+      }
+      topics {
+        id
+        name
+        weight
+        criteria {
+          id
+          description
+          disabled
+          weight
+        }
+      }
+    }
+  }
+`
+function BuilderQueryWrapper({ id }) {
+  const { data, error, loading } = useQuery(GET_RUBRIC_BY_ID, {
+    variables: { id: id },
+  })
+
+  if (loading) return <p>Loading...</p>
+  if (error) return <p>{error}</p>
+  return <Builder rubric={data.rubric} editing="true" />
+}
+
+function BuilderEditSwitcher(props) {
+  if (props.id) {
+    return BuilderQueryWrapper({ id: props.id })
+  }
+  return <Builder {...props} />
+}
+
+export default BuilderEditSwitcher

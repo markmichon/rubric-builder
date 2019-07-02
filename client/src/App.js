@@ -3,9 +3,6 @@ import Rubric from './containers/Rubric'
 import Builder from './containers/Builder'
 import Nav from './components/Nav'
 import { Router, Link } from '@reach/router'
-import { Provider } from 'react-redux'
-import configureStore from './configureStore'
-import { PersistGate } from 'redux-persist/integration/react'
 import { Global, css } from '@emotion/core'
 import Apollo from './setupApollo'
 import { useQuery, useMutation } from 'react-apollo'
@@ -44,8 +41,6 @@ const globalStyles = css`
     margin: 0;
   }
 `
-
-const { store, persistor } = configureStore()
 
 const GET_RUBRICS = gql`
   query {
@@ -106,6 +101,7 @@ const LoggedIn = () => {
           <Dashboard path="/" />
           <Rubric path="/rubric/:rubricId" />
           <Builder path="/builder" />
+          <Builder path="/builder/:id" />
         </Router>
       </main>
     </>
@@ -123,12 +119,8 @@ const AuthHandler = () => {
 function App() {
   return (
     <Apollo>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <Global styles={globalStyles} />
-          <AuthHandler />
-        </PersistGate>
-      </Provider>
+      <Global styles={globalStyles} />
+      <AuthHandler />
     </Apollo>
   )
 }
