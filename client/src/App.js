@@ -9,6 +9,7 @@ import { useQuery, useMutation } from 'react-apollo'
 import gql from 'graphql-tag'
 
 import LoginForm from './components/LoginForm'
+import DeleteRubric from './components/DeleteRubric'
 
 const globalStyles = css`
   * {
@@ -43,7 +44,7 @@ const globalStyles = css`
 `
 
 const GET_RUBRICS = gql`
-  query {
+  query getRubrics {
     rubrics {
       id
       name
@@ -66,6 +67,7 @@ function Dashboard() {
         {rubrics.map(rubric => (
           <li key={rubric.id}>
             <Link to={`rubric/${rubric.id}`}>{rubric.name}</Link>
+            <DeleteRubric id={rubric.id} />
           </li>
         ))}
       </ul>

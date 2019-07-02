@@ -11,6 +11,7 @@ export const typeDefs = gql`
     signup(email: String!, password: String!): UserPayload!
     saveRubric(rubric: RubricInput): SuccessState
     updateRubric(rubric: RubricInput): SuccessState
+    deleteRubric(id: String!): SuccessState
   }
 
   type SuccessState {

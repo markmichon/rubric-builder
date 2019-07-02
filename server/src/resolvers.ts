@@ -1,5 +1,5 @@
 import { User } from './modules/user'
-import { Rubric } from './modules/rubric'
+import { Rubric, RubricModel } from './modules/rubric'
 export const resolvers = {
   Query: {
     me: async (parent: any, args: any, { token }) => {
@@ -65,6 +65,7 @@ export const resolvers = {
         }
         return { success: false }
       }
+      // TODO: Add logic to ensure only owner can update a rubric
       const success = await Rubric.update(rubric)
       if (!success) {
         throw new Error('Failed to update Rubric')
@@ -81,6 +82,26 @@ export const resolvers = {
         throw new Error('Failed to update Rubric')
       }
       return { success }
+    },
+    deleteRubric: async (parent, { id }, { token }) => {
+      const user = await User.getByToken(token)
+      if (!user) {
+        throw new Error('Cannot create rubric unless logged in')
+      }
+      let rubricOwner = await Rubric.getOwner(id)
+      console.log(rubricOwner)
+      if (rubricOwner.toString() === user._id.toString()) {
+        try {
+          let res = await RubricModel.findByIdAndDelete(id)
+          if (res) {
+            return { success: true }
+          }
+        } catch (error) {
+          throw new Error(error)
+        }
+      } else {
+        throw new Error('User does not own rubric')
+      }
     },
   },
 }

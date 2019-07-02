@@ -90,6 +90,19 @@ const update = async (rubric: any) => {
   }
   return false
 }
+
+const remove = async (id: String) => RubricModel.findByIdAndDelete(id)
+
+const getOwner = async (id: String) => {
+  let rubric = await RubricModel.findById(id)
+  if (rubric.owner) return rubric.owner
+  throw new Error('Could not get owner for rubric')
+}
+
+// const isOwner = async (rubricId, ownerId) => {
+
+// }
+
 export const RubricModel = model('Rubric', RubricSchema)
 
 export const Rubric = {
@@ -97,4 +110,6 @@ export const Rubric = {
   getById,
   create,
   update,
+  remove,
+  getOwner,
 }
