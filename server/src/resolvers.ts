@@ -38,7 +38,7 @@ export const resolvers = {
   },
   Mutation: {
     login: async (parent: any, args: any, context: any) => {
-      const userPayload = await User.login(args)
+      const userPayload = await User.login(args, context)
       return userPayload
     },
     signup: async (parent: any, args: any, context: any) => {
@@ -60,14 +60,16 @@ export const resolvers = {
           owner: user._id,
         }
         const addedRubric = await Rubric.create(rubricWithOwner)
-
-        return addedRubric
+        if (addedRubric) {
+          return { success: true }
+        }
+        return { success: false }
       }
       const success = await Rubric.update(rubric)
       if (!success) {
         throw new Error('Failed to update Rubric')
       }
-      return { success }
+      return { success: true }
     },
     updateRubric: async (parent: any, { rubric }, { token }) => {
       const user = await User.getByToken(token)

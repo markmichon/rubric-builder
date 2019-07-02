@@ -49,7 +49,7 @@ const getByToken = async (token: string) => {
     throw new Error(err)
   }
 }
-const login = async ({ email, password }) => {
+const login = async ({ email, password }, { res }) => {
   const userRecord = await UserModel.findOne({ email })
   if (!userRecord) {
     throw new Error('Could not find user with that email')
@@ -60,7 +60,7 @@ const login = async ({ email, password }) => {
     }
   }
   const token = generateJWT(userRecord)
-
+  // res.cookie('access-token', token, { expires: 60 * 60 * 24 * 7 })
   return {
     user: {
       email: userRecord.email,
