@@ -6,8 +6,6 @@ import gql from 'graphql-tag'
 import styled from '@emotion/styled'
 import { Link } from '@reach/router'
 import Nav from '../components/Nav'
-import { connect } from 'react-redux'
-import { getFullRubric } from '../reducers'
 import RubricRow from '../components/RubricRow'
 const gridItem = css`
   padding: 0.5em;
@@ -231,8 +229,4 @@ function RubricQueryWrapper({ rubricId }) {
   return <Rubric rubric={data.rubric} />
 }
 
-const mapState = state => ({
-  rubric: getFullRubric(state),
-})
-// export default connect(mapState)(Rubric)
 export default RubricQueryWrapper

@@ -6,18 +6,8 @@ import { useDebouncedCallback } from 'use-debounce'
 import { css, jsx } from '@emotion/core'
 import styled from '@emotion/styled'
 import nanoid from 'nanoid'
-import { connect } from 'react-redux'
 import Nav from '../components/Nav'
 import RubricRow from '../components/RubricRow'
-import { getTopics, getFullRubric } from '../reducers'
-import {
-  addLevel,
-  editLevel,
-  deleteLevel,
-  editTopic,
-  editCriteria,
-  addTopic,
-} from '../actions'
 
 const DEBOUNCE_TIME = 300
 
