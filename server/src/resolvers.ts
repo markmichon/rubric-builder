@@ -48,18 +48,26 @@ export const resolvers = {
       }
       return userPayload
     },
-    makeRubric: async (parent: any, { rubric }, { token }) => {
+    saveRubric: async (parent: any, { rubric }, { token }) => {
       const user = await User.getByToken(token)
       if (!user) {
         throw new Error('Cannot create rubric unless logged in')
       }
-      const rubricWithOwner = {
-        ...rubric,
-        owner: user._id,
-      }
-      const addedRubric = await Rubric.create(rubricWithOwner)
 
-      return addedRubric
+      if (!rubric.id) {
+        const rubricWithOwner = {
+          ...rubric,
+          owner: user._id,
+        }
+        const addedRubric = await Rubric.create(rubricWithOwner)
+
+        return addedRubric
+      }
+      const success = await Rubric.update(rubric)
+      if (!success) {
+        throw new Error('Failed to update Rubric')
+      }
+      return { success }
     },
     updateRubric: async (parent: any, { rubric }, { token }) => {
       const user = await User.getByToken(token)

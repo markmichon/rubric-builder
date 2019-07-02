@@ -9,12 +9,13 @@ export const typeDefs = gql`
   type Mutation {
     login(email: String!, password: String!): UserPayload!
     signup(email: String!, password: String!): UserPayload!
-    makeRubric(rubric: RubricInput): Rubric
+    saveRubric(rubric: RubricInput): SuccessState
     updateRubric(rubric: RubricInput): SuccessState
   }
 
   type SuccessState {
     success: Boolean!
+    error: String
   }
   type User {
     email: String!
