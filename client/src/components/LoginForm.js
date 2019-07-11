@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
-
+import { Box, TextInput, Label, Button, H } from './radicals'
 const LOG_IN = gql`
   mutation login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
@@ -38,27 +38,34 @@ function LoginForm() {
     }
   }
   return (
-    <div>
+    <Box maxWidth="400px" mx="auto">
       {/* {loading ? <p>Loading...</p> : null} */}
       {/* {error ? <p>Error: {error}</p> : null} */}
       {/* {data ? <p>Success!</p> : null} */}
+      <H as="h2" mb={3}>
+        Welcome back.
+      </H>
       <form onSubmit={handleForm}>
-        <label htmlFor="email">Email</label>
-        <input
+        <Label htmlFor="email">Email</Label>
+        <TextInput
           type="email"
           id="email"
           onChange={e => setEmail(e.target.value)}
+          width="100%"
         />
-        <label htmlFor="password">Password</label>
-        <input
+        <Label htmlFor="password">Password</Label>
+        <TextInput
           type="password"
           name="password"
           id="password"
           onChange={e => setPassword(e.target.value)}
+          width="100%"
         />
-        <button type="submit">Log in</button>
+        <Button variant="primary" type="submit" display="block" width="100%">
+          Log in
+        </Button>
       </form>
-    </div>
+    </Box>
   )
 }
 

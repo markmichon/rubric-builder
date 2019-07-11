@@ -2,14 +2,17 @@ import React from 'react'
 import Rubric from './containers/Rubric'
 import Builder from './containers/Builder'
 import Nav from './components/Nav'
-import { Router, Link } from '@reach/router'
-import { Global, css } from '@emotion/core'
+import { Router } from '@reach/router'
+import { css, Global } from '@emotion/core'
+import { ThemeProvider } from 'emotion-theming'
 import Apollo from './setupApollo'
 import { useQuery, useMutation } from 'react-apollo'
 import gql from 'graphql-tag'
-
+import { Box, Text, Link } from './components/radicals'
 import LoginForm from './components/LoginForm'
-import DeleteRubric from './components/DeleteRubric'
+import Dashboard from './components/Dashboard'
+import Layout from './components/Layout'
+import theme from './theme'
 
 const globalStyles = css`
   * {
@@ -41,39 +44,15 @@ const globalStyles = css`
     padding: 0;
     margin: 0;
   }
-`
 
-const GET_RUBRICS = gql`
-  query getRubrics {
-    rubrics {
-      id
-      name
-      # createdAt
-      # updatedAt
-    }
+  input,
+  button,
+  select,
+  option {
+    font-family: inherit;
+    font-size: inherit;
   }
 `
-function Dashboard() {
-  const { data, error, loading } = useQuery(GET_RUBRICS)
-  const { rubrics } = data
-  if (loading) return <p>Loading...</p>
-  if (error) return <p>Error: {error.message}</p>
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      {/* <Nav /> */}
-      <Link to="/builder">Create new Rubric</Link>
-      <ul>
-        {rubrics.map(rubric => (
-          <li key={rubric.id}>
-            <Link to={`rubric/${rubric.id}`}>{rubric.name}</Link>
-            <DeleteRubric id={rubric.id} />
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
 
 const IS_LOGGED_IN = gql`
   query isLoggedIn {
@@ -96,16 +75,14 @@ const LoggedIn = () => {
   }
   return (
     <>
-      <main>
-        <h1>Hello</h1>
-        <button onClick={handleLogOut}>Log Out</button>
+      <Layout logOut={handleLogOut}>
         <Router>
           <Dashboard path="/" />
           <Rubric path="/rubric/:rubricId" />
           <Builder path="/builder" />
           <Builder path="/builder/:id" />
         </Router>
-      </main>
+      </Layout>
     </>
   )
 }
@@ -121,8 +98,12 @@ const AuthHandler = () => {
 function App() {
   return (
     <Apollo>
-      <Global styles={globalStyles} />
-      <AuthHandler />
+      <ThemeProvider theme={theme}>
+        <>
+          <Global styles={globalStyles} />
+          <AuthHandler />
+        </>
+      </ThemeProvider>
     </Apollo>
   )
 }

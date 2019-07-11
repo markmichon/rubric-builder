@@ -1,7 +1,10 @@
+/** @jsx jsx */
 import React, { useState } from 'react'
 import { useMutation } from 'react-apollo'
 import gql from 'graphql-tag'
-
+import { css, jsx } from '@emotion/core'
+import { Button } from './radicals'
+import Icons from './Icons'
 const DELETE_RUBRIC = gql`
   mutation deleteRubric($id: String!) {
     deleteRubric(id: $id) {
@@ -10,7 +13,7 @@ const DELETE_RUBRIC = gql`
   }
 `
 
-function DeleteRubric({ id }) {
+function DeleteRubric({ id }, props) {
   const [confirm, setConfirm] = useState(false)
   const [deleteRubric, { error, loading, data }] = useMutation(DELETE_RUBRIC, {
     variables: {
@@ -23,18 +26,21 @@ function DeleteRubric({ id }) {
   }
   if (!confirm)
     return (
-      <button
+      <Button
         onClick={e => {
           setConfirm(true)
         }}
+        // color="textLight"
+        variant="secondary"
+        {...props}
       >
-        ❌
-      </button>
+        Delete <Icons.close />
+      </Button>
     )
   if (confirm)
     return (
-      <div>
-        <button onClick={handleDelete}>Yes</button>)
+      <span>
+        <button onClick={handleDelete}>Yes</button>
         <button
           onClick={e => {
             setConfirm(false)
@@ -42,7 +48,7 @@ function DeleteRubric({ id }) {
         >
           Never mind, cancel
         </button>
-      </div>
+      </span>
     )
 }
 

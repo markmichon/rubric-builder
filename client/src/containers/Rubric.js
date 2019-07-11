@@ -7,6 +7,7 @@ import styled from '@emotion/styled'
 import { Link } from '@reach/router'
 import Nav from '../components/Nav'
 import RubricRow from '../components/RubricRow'
+import Feedback from '../components/Feedback'
 const gridItem = css`
   padding: 0.5em;
 `
@@ -186,6 +187,7 @@ function Rubric({ rubric }) {
             )
           })}
           <div>Final Grade: {finalGrade}</div>
+          <Feedback />
         </>
       ) : (
         <p>No rubric found</p>

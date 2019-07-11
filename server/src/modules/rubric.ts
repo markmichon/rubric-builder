@@ -81,7 +81,7 @@ const update = async (rubric: any) => {
   let oldRubric = await RubricModel.findById(id)
   delete rubric._id
   let newRubric = merge(oldRubric, rubric)
-  let { n, nModified, ok } = await RubricModel.replaceOne(
+  let { ok } = await RubricModel.replaceOne(
     { _id: id },
     newRubric
   )

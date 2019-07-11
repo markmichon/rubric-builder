@@ -8,6 +8,7 @@ import styled from '@emotion/styled'
 import nanoid from 'nanoid'
 import Nav from '../components/Nav'
 import RubricRow from '../components/RubricRow'
+import { H, TextInput, Box, Button } from '../components/radicals'
 
 const DEBOUNCE_TIME = 300
 
@@ -18,13 +19,13 @@ const Label = styled.label`
   color: hsl(0, 0%, 30%);
   margin-bottom: 0.25rem;
 `
-const TextInput = styled.input`
-  display: block;
-  font-size: 1em;
-  &:not(:last-of-type) {
-    margin-bottom: 0.5rem;
-  }
-`
+// const TextInput = styled.input`
+//   display: block;
+//   font-size: 1em;
+//   &:not(:last-of-type) {
+//     margin-bottom: 0.5rem;
+//   }
+// `
 
 const Fieldset = styled.fieldset`
   border: none;
