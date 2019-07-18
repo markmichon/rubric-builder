@@ -34,7 +34,14 @@ Box.defaultStyles = {
   p: 0,
 }
 
-const Text = styled.p({})
+const Text = styled.p(
+  {},
+  compose(
+    color,
+    space,
+    typography
+  )
+)
 
 const baseInputStyles = `
   font-family: inherit;

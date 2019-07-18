@@ -12,8 +12,8 @@ const GET_RUBRICS = gql`
     rubrics {
       id
       name
-      # createdAt
-      # updatedAt
+      createdAt
+      updatedAt
     }
   }
 `
@@ -33,11 +33,20 @@ function Dashboard() {
       `}
     >
       {rubrics.map(rubric => (
-        <Box as="li" key={rubric.id} mb="3">
-          <Link to={`rubric/${rubric.id}`} variant="unstyled" mb="1">
-            {rubric.name}
-          </Link>
-          <Box display="flex">
+        <Box
+          as="li"
+          key={rubric.id}
+          mb="3"
+          display="flex"
+          justifyContent="space-between"
+        >
+          <Box>
+            <Link to={`rubric/${rubric.id}`} variant="unstyled" mb="1">
+              {rubric.name}
+            </Link>
+            <Text color="muted">{rubric.updatedAt}</Text>
+          </Box>
+          <Box display="flex" alignSelf="start">
             <ButtonLink
               to={`/builder/${rubric.id}`}
               state={{ editing: true }}

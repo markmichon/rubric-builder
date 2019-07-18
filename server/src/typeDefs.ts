@@ -1,5 +1,7 @@
 import { gql } from 'apollo-server-express'
+
 export const typeDefs = gql`
+  scalar Date
   type Query {
     me: User!
     rubrics: [Rubric]
@@ -33,6 +35,8 @@ export const typeDefs = gql`
     name: String!
     levels: [Level]
     topics: [Topic]
+    updatedAt: Date!
+    createdAt: Date!
   }
 
   type Level {

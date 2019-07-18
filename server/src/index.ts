@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { ApolloServer, gql } from 'apollo-server'
 import { resolvers } from './resolvers'
-import { typeDefs } from './typeDefs'
+import { typeDefs, resolveFunctions } from './typeDefs'
 import { dbSetup } from './db'
 import { User } from './modules/user'
 // import { merge } from 'lodash'

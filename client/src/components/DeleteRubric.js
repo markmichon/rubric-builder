@@ -31,7 +31,7 @@ function DeleteRubric({ id }, props) {
           setConfirm(true)
         }}
         // color="textLight"
-        variant="secondary"
+        variant="danger"
         {...props}
       >
         Delete <Icons.close />

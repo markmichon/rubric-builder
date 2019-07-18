@@ -1,5 +1,6 @@
 import { User } from './modules/user'
 import { Rubric, RubricModel } from './modules/rubric'
+import { GraphQLDateTime } from 'graphql-iso-date'
 export const resolvers = {
   Query: {
     me: async (parent: any, args: any, { token }) => {
@@ -104,4 +105,5 @@ export const resolvers = {
       }
     },
   },
+  Date: GraphQLDateTime,
 }
