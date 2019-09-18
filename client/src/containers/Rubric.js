@@ -87,16 +87,35 @@ const SelectableItem = styled.div`
 `
 
 function TopicRow({ name, weight, id, criteria, handleUpdate }) {
+  const [state, setState] = useState({
+    id,
+    topic: name,
+    max: weight,
+    score: 0,
+    level: criteria.levelName,
+    comment: '',
+  })
   const handleChange = (criteria, e) => {
     if (e.target.checked && e.target.value) {
       const grade = weight * (criteria.weight / 100)
-      console.log(criteria)
-      handleUpdate({
-        topic: id,
-        criteria,
-        grade,
-      })
+      const payload = {
+        ...state,
+        max: weight,
+        score: grade,
+        level: criteria.levelName,
+      }
+      handleUpdate(payload)
+      setState(payload)
     }
+  }
+
+  const handleComment = e => {
+    const payload = {
+      ...state,
+      comment: e.target.value,
+    }
+    handleUpdate(payload)
+    setState(payload)
   }
   return (
     <RubricRow
@@ -134,7 +153,7 @@ function TopicRow({ name, weight, id, criteria, handleUpdate }) {
       ))}
       <CommentContainer>
         <label htmlFor="">Comment:</label>
-        <input type="text" />
+        <input type="text" onChange={handleComment} />
       </CommentContainer>
     </RubricRow>
   )
@@ -148,14 +167,14 @@ function Rubric({ rubric }) {
   }, [topicGrades])
 
   const handleRowUpdate = payload => {
-    const filtered = topicGrades.filter(grade => grade.topic !== payload.topic)
+    const filtered = topicGrades.filter(row => row.id !== payload.id)
 
     setTopicGrades([...filtered, payload])
-    calculateGrade(topicGrades)
+    // calculateGrade(topicGrades)
   }
   const calculateGrade = grades => {
     if (grades) {
-      const grade = grades.reduce((total, topic) => total + topic.grade, 0)
+      const grade = grades.reduce((total, topic) => total + topic.score, 0)
       setFinalGrade(grade)
     }
   }
@@ -187,7 +206,11 @@ function Rubric({ rubric }) {
             )
           })}
           <div>Final Grade: {finalGrade}</div>
-          <Feedback />
+          {topicGrades.length !== rubric.topics.length ? (
+            <p>Finish grading to view output</p>
+          ) : (
+            <Feedback data={topicGrades} />
+          )}
         </>
       ) : (
         <p>No rubric found</p>
@@ -215,6 +238,7 @@ const GET_RUBRIC_BY_ID = gql`
           description
           disabled
           weight
+          levelName
         }
       }
     }

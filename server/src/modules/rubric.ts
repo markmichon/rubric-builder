@@ -61,7 +61,7 @@ export const RubricSchema = new Schema(
 )
 
 const getAllByUserId = async userId => {
-  const rubrics = await RubricModel.find({ owner: userId })
+  const rubrics = await RubricModel.find({ owner: userId }).sort({ updatedAt: 'desc'})
   if (rubrics) {
     return rubrics
   }
