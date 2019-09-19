@@ -45,7 +45,7 @@ const authLink = setContext(async (_, { headers }) => {
   }
 })
 
-const httpLink = new HttpLink({ uri: 'http://localhost:4000/graphql' })
+const httpLink = new HttpLink({ uri: '/api' })
 
 const cache = new InMemoryCache()
 
