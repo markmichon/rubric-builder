@@ -1,4 +1,5 @@
 {
+  "name": "rubric-builder",
   "env": {
     "MONGO_URI": "@mongo_uri",
     "JWT_SECRET": "@jwt_secret"
