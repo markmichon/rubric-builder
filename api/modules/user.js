@@ -43,7 +43,7 @@ const getByToken = async token => {
       return user
     }
   } catch (err) {
-    throw new Error(err)
+    return null
   }
 }
 const login = async ({ email, password }, { res }) => {
