@@ -1,6 +1,6 @@
-import { gql } from 'apollo-server-express'
+const { gql } = require('apollo-server-express')
 
-export const typeDefs = gql`
+const typeDefs = gql`
   scalar Date
   type Query {
     me: User!
@@ -89,3 +89,4 @@ export const typeDefs = gql`
     weight: Int!
   }
 `
+module.exports.typeDefs = typeDefs

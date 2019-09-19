@@ -1,16 +1,19 @@
-import { User } from './modules/user'
-import { Rubric, RubricModel } from './modules/rubric'
-import { GraphQLDateTime } from 'graphql-iso-date'
-export const resolvers = {
+const { User } = require('./modules/user')
+const { Rubric, RubricModel } = require('./modules/rubric')
+const { GraphQLDateTime } = require('graphql-iso-date')
+const resolvers = {
   Query: {
-    me: async (parent: any, args: any, { token }) => {
+    // @ts-ignore
+    me: async (parent, args, { token }) => {
       const user = await User.getByToken(token)
       if (!user || !token) {
         throw new Error('Not logged in')
       }
+      // @ts-ignore
       return { email: user.email }
     },
-    rubrics: async (parent: any, args: any, { token }) => {
+    // @ts-ignore
+    rubrics: async (parent, args, { token }) => {
       // 1. Check if user is logged in
       const user = await User.getByToken(token)
       if (!user) {
@@ -25,11 +28,13 @@ export const resolvers = {
       // 3. Return array of Rubrics
       return rubrics
     },
-    rubric: async (parent: any, { id }, { token }) => {
+    // @ts-ignore
+    rubric: async (parent, { id }, { token }) => {
       // 1. Check if user is logged in
       const user = await User.getByToken(token)
       // 2. Get Rubric by ID and confirm it belongs to user
       const rubric = await Rubric.getById(id)
+      // @ts-ignore
       if (rubric.owner.toString() !== user._id.toString()) {
         throw new Error('You do not have permission to view this rubric')
       }
@@ -38,18 +43,21 @@ export const resolvers = {
     },
   },
   Mutation: {
-    login: async (parent: any, args: any, context: any) => {
+    // @ts-ignore
+    login: async (parent, args, context) => {
       const userPayload = await User.login(args, context)
       return userPayload
     },
-    signup: async (parent: any, args: any, context: any) => {
+    // @ts-ignore
+    signup: async (parent, args, context) => {
       const userPayload = await User.signup(args)
       if (!userPayload) {
         throw new Error('Failed to create user')
       }
       return userPayload
     },
-    saveRubric: async (parent: any, { rubric }, { token }) => {
+    // @ts-ignore
+    saveRubric: async (parent, { rubric }, { token }) => {
       const user = await User.getByToken(token)
       if (!user) {
         throw new Error('Cannot create rubric unless logged in')
@@ -73,7 +81,8 @@ export const resolvers = {
       }
       return { success: true }
     },
-    updateRubric: async (parent: any, { rubric }, { token }) => {
+    // @ts-ignore
+    updateRubric: async (parent, { rubric }, { token }) => {
       const user = await User.getByToken(token)
       if (!user) {
         throw new Error('Cannot create rubric unless logged in')
@@ -84,6 +93,7 @@ export const resolvers = {
       }
       return { success }
     },
+    // @ts-ignore
     deleteRubric: async (parent, { id }, { token }) => {
       const user = await User.getByToken(token)
       if (!user) {
@@ -107,3 +117,5 @@ export const resolvers = {
   },
   Date: GraphQLDateTime,
 }
+
+module.exports.resolvers = resolvers

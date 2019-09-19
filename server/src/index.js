@@ -1,9 +1,9 @@
-import 'dotenv/config'
-import { ApolloServer, gql } from 'apollo-server'
-import { resolvers } from './resolvers'
-import { typeDefs } from './typeDefs'
-import { dbSetup } from './db'
-import { User } from './modules/user'
+require('dotenv/config')
+const { ApolloServer, gql } = require('apollo-server')
+const { resolvers } = require('./resolvers')
+const { typeDefs } = require('./typeDefs')
+const { dbSetup } = require('./db')
+const { User } = require('./modules/user')
 // import { merge } from 'lodash'
 
 const startServer = async () => {
@@ -12,7 +12,7 @@ const startServer = async () => {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: async ({ req, res }: any) => {
+    context: async ({ req, res }) => {
       const token = req.headers.authorization || ''
       try {
         const user = await User.getByToken(token)

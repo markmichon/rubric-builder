@@ -1,11 +1,8 @@
-import { Schema, model } from 'mongoose'
-import * as bcrypt from 'bcrypt'
-import * as jwt from 'jsonwebtoken'
-import { RubricSchema } from './rubric'
-interface UserInteface {
-  email: string
-  password?: string
-}
+// @ts-nocheck
+const { Schema, model } = require('mongoose')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const { RubricSchema } = require('./rubric')
 
 const UserSchema = new Schema(
   {
@@ -28,9 +25,9 @@ const UserSchema = new Schema(
   { timestamps: true }
 )
 
-export const UserModel = model('User', UserSchema)
+const UserModel = model('User', UserSchema)
 
-const generateJWT = (user: any) =>
+const generateJWT = user =>
   jwt.sign(
     {
       _id: user._id,
@@ -38,7 +35,7 @@ const generateJWT = (user: any) =>
     process.env.JWT_SECRET
   )
 
-const getByToken = async (token: string) => {
+const getByToken = async token => {
   try {
     const { _id } = jwt.verify(token, process.env.JWT_SECRET)
     const user = await UserModel.findOne({ _id: _id })
@@ -89,9 +86,9 @@ const signup = async ({ email, password }) => {
   }
 }
 
-const get = (userId: string) => UserModel.findById(userId)
-
-export const User = {
+const get = userId => UserModel.findById(userId)
+module.exports.UserModel = UserModel
+module.exports.User = {
   login,
   signup,
   getByToken,

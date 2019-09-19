@@ -1,6 +1,6 @@
-import { Schema, model } from 'mongoose'
-import merge from 'lodash/merge'
-import { User } from './user'
+// @ts-nocheck
+const { Schema, model } = require('mongoose')
+const merge = require('lodash/merge')
 const LevelSchema = new Schema({
   name: {
     type: String,
@@ -44,7 +44,7 @@ const TopicSchema = new Schema({
   criteria: [CriteriaSchema],
 })
 
-export const RubricSchema = new Schema(
+const RubricSchema = new Schema(
   {
     name: {
       type: String,
@@ -61,7 +61,9 @@ export const RubricSchema = new Schema(
 )
 
 const getAllByUserId = async userId => {
-  const rubrics = await RubricModel.find({ owner: userId }).sort({ updatedAt: 'desc'})
+  const rubrics = await RubricModel.find({ owner: userId }).sort({
+    updatedAt: 'desc',
+  })
   if (rubrics) {
     return rubrics
   }
@@ -74,9 +76,9 @@ const getById = async id => {
   }
 }
 
-const create = (rubric: any) => RubricModel.create(rubric)
+const create = rubric => RubricModel.create(rubric)
 
-const update = async (rubric: any) => {
+const update = async rubric => {
   let { id } = rubric
   let oldRubric = await RubricModel.findById(id)
   delete rubric._id
@@ -89,9 +91,9 @@ const update = async (rubric: any) => {
   return false
 }
 
-const remove = async (id: String) => RubricModel.findByIdAndDelete(id)
+const remove = async id => RubricModel.findByIdAndDelete(id)
 
-const getOwner = async (id: String) => {
+const getOwner = async id => {
   let rubric = await RubricModel.findById(id)
   if (rubric.owner) return rubric.owner
   throw new Error('Could not get owner for rubric')
@@ -101,9 +103,9 @@ const getOwner = async (id: String) => {
 
 // }
 
-export const RubricModel = model('Rubric', RubricSchema)
-
-export const Rubric = {
+const RubricModel = model('Rubric', RubricSchema)
+module.exports.RubricModel = RubricModel
+module.exports.Rubric = {
   getAllByUserId,
   getById,
   create,

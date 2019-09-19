@@ -20,7 +20,7 @@ const GET_RUBRICS = gql`
 
 function Dashboard() {
   const { data, error, loading } = useQuery(GET_RUBRICS)
-  const { rubrics } = data
+  // const { rubrics } = data
   if (loading) return <p>Loading...</p>
   if (error) return <p>Error: {error.message}</p>
   return (
@@ -32,7 +32,7 @@ function Dashboard() {
         padding: 0;
       `}
     >
-      {rubrics.map(rubric => (
+      {data.rubrics.map(rubric => (
         <Box
           as="li"
           key={rubric.id}
