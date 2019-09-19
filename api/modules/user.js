@@ -32,7 +32,7 @@ const generateJWT = user =>
     {
       _id: user._id,
     },
-    process.env.jwt_secret
+    process.env.JWT_SECRET
   )
 
 const getByToken = async token => {
