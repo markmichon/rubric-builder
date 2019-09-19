@@ -10,7 +10,7 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: async ({ req, res }) => {
-    await dbSetup(process.env.MONGO_URI)
+    await dbSetup(process.env.mongo_uri)
     const token = req.headers.authorization || ''
     try {
       const user = await User.getByToken(token)
