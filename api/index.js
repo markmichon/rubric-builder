@@ -1,4 +1,4 @@
-require('dotenv/config')
+// require('dotenv/config')
 const { ApolloServer, gql } = require('apollo-server-micro')
 const { resolvers } = require('./resolvers')
 const { typeDefs } = require('./typeDefs')
